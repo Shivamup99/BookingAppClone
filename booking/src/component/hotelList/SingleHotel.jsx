@@ -110,9 +110,9 @@ function SingleHotel() {
               <button>Reserve or Book Now !</button>
             </div>
           </div>
-          <MailList />
-          <Footer />
         </div>
+        <MailList />
+          <Footer />
       </div>
     </>
   );
