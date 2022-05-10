@@ -1,5 +1,5 @@
 import hotelScema from "../modals/hotelModal.js"
-
+import Rooms from '../modals/rooms.js'
 export const getAllHotel = async(req,res,next)=>{
     const {min,max,...others} = req.query;
     try {
@@ -75,6 +75,18 @@ export const getTypeHotel = async(req,res,next)=>{
             {type:'resorts',count:resortCount},
             {type:'cabins',count:cabinCount}
         ])
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const getHotelRooms = async(req,res,next)=>{
+    try {
+        const hotel = await hotelScema.findById(req.params.id)
+        const list = await Promise.all(hotel.rooms.map((room)=>{
+            return Rooms.findById(room)
+        }))
+        res.status(200).json(list)
     } catch (error) {
         next(error)
     }

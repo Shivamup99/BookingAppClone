@@ -58,7 +58,6 @@
     height: 25px;
     border-radius: 5px;
     font-size: medium;
-    text-transform: capitalize;
     outline: none;
 }
 .lsItem>input::placeholder{

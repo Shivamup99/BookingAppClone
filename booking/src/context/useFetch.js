@@ -18,8 +18,8 @@ const useFetch =(url)=>{
             setLoading(false)
         }
         fetchData();
-    },[url])
-
+    },[])
+// If I remove the url dipendency then its gonna load data on search click on list item page
 
 const reFetchData = async()=>{
     setLoading(true)

@@ -1,14 +1,42 @@
 import { faCircleArrowLeft, faCircleArrowRight,faCircleXmark, faLocationDot } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { AuthContext } from "../../context/authContext";
+import { SearchContext } from "../../context/searchContext";
+import useFetch from "../../context/useFetch";
 import Footer from "../Footer";
 import Header from "../Header";
 import MailList from "../MailList";
 import Navbar from "../Navbar";
+import ReserveModal from "./ReserveModal";
 
 function SingleHotel() {
+    const navigate = useNavigate()
     const [slider,setSlider] = useState(0)
     const [openSlider,setOpenSlider] = useState(false)
+    const hotelId = useParams()
+    const [openModal,setOpenModal] = useState(false)
+    const {data,loading} = useFetch(`http://localhost:8000/api/hotel/find/${hotelId._id}`)
+    const {user} = useContext(AuthContext)
+    const {dates,options} = useContext(SearchContext)
+    const MLSPERDAY = 1000*60*60*24;
+    function dayDiff(date1,date2){
+      const timeDiff = Math.abs(date2.getTime()-date1.getTime());
+      const diffDays = Math.ceil(timeDiff/MLSPERDAY)
+      return diffDays;
+    }
+
+    const days = dayDiff(dates[0].endDate,dates[0].startDate)
+
+    const handleModal =()=>{
+        if(user){
+          setOpenModal(true)
+        }else{
+          navigate('/login')
+        }
+    }
+
   const photos = [
     {
       src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTB0sYRNsS-NnUe78ZS21yD2XYwKpVEdlBH6g&usqp=CAU",
@@ -48,7 +76,9 @@ function SingleHotel() {
       <Navbar />
       <Header type="list" />
       <div className="hotelContainer">
-         {
+        {loading ? "Loading wait":
+        <>
+          {
              openSlider &&(
                 <div className="slider">
                     <FontAwesomeIcon icon={faCircleXmark} className='close' onClick={()=>setOpenSlider(false)}/>
@@ -64,16 +94,16 @@ function SingleHotel() {
          } 
         <div className="hotelWrapper">
           <button className="booknow">Reserve or Book Now</button>
-          <h1 className="hotelTitle">Grand Hotel</h1>
+          <h1 className="hotelTitle">{data.name}</h1>
           <div className="hotelAddress">
             <FontAwesomeIcon icon={faLocationDot} />
-            <span>Navi Mumbai 36 Sec</span>
+            <span>{data.city} , {data.address}</span>
           </div>
           <span className="hotelDistance">
-            Excellent location 500 m from center
+            Excellent location {data.distance} m from your location
           </span>
           <span className="hotelPriceHighLight">
-            Book a stay $114 at thi property and get free airport taxi
+            Book a stay $ {data.cheapestPrice} at thi property and get free airport taxi
           </span>
           <div className="hotelImages">
             {photos.map((photo,i) => (
@@ -84,20 +114,14 @@ function SingleHotel() {
           </div>
           <div className="hotelDetails">
             <div className="hotelDetailsTexts">
-              <h1 className="hotelTitle">Stay in the heart of Mumbai</h1>
+              <h1 className="hotelTitle">{data.title}</h1>
               <p className="hotelDesc">
                 {" "}
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ut
-                veniam ducimus totam officiis sunt, qui culpa aliquam aut quidem
-                atque deleniti at quod laborum cupiditate vitae corrupti fugit
-                magnam recusandae! Lorem ipsum dolor sit, amet consectetur
-                adipisicing elit. Ipsam, tenetur vitae. Autem odit enim beatae
-                esse nostrum quisquam ratione vero consectetur asperiores
-                repudiandae ea nemo ipsum quos necessitatibus, quidem numquam!
+                {data.description}
               </p>
             </div>
             <div className="hotelDetailsPrice">
-              <h1>Perfect for a 9-night stay</h1>
+              <h1>Perfect for a {days}-night stay</h1>
               <span>
                 Lorem ipsum dolor, sit amet consectetur adipisicing elit.
                 Aperiam exercitationem deleniti iste magni? Veritatis eligendi
@@ -105,15 +129,18 @@ function SingleHotel() {
                 est vero recusandae porro officia ratione.
               </span>
               <h2>
-                <b>$890</b>(9 nights)
+                <b>$ {days * data.cheapestPrice * options.room}</b>({days} days)
               </h2>
-              <button>Reserve or Book Now !</button>
+              <button onClick={handleModal}>Reserve or Book Now !</button>
             </div>
           </div>
         </div>
         <MailList />
           <Footer />
+        </>
+        }
       </div>
+      {openModal && <ReserveModal setOpen={setOpenModal} hotelId={hotelId}/>}
     </>
   );
 }
